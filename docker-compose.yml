@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  hnode:
+    container_name: hnode
+    image: "hnode:${TAG:-latest}"
+    network_mode: host
+    build:
+      context: "."
+      dockerfile: Dockerfile
+    tty: true
+    environment:
+      PRIVATE_KEY: ${ETH_PRIVATE_KEY} 
