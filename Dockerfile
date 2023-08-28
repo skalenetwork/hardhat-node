@@ -1,12 +1,8 @@
-FROM node:16
-
-ENV NODE_OPTIONS="--max-old-space-size=2048"
+FROM node:18
 
 RUN mkdir /app
 
-WORKDIR /app 
-
-RUN apt-get update && apt-get install build-essential
+WORKDIR /app
 
 COPY src/* .
 
