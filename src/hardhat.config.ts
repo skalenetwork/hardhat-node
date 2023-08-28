@@ -1,74 +1,47 @@
 import * as dotenv from "dotenv";
+import { HardhatUserConfig } from "hardhat/config";
+import { ethers } from "ethers";
+import { HardhatNetworkAccountUserConfig } from "hardhat/types";
 
-import { HardhatUserConfig, task } from "hardhat/config";
-import "@nomiclabs/hardhat-etherscan";
-import "@nomiclabs/hardhat-waffle";
-import "@typechain/hardhat";
-import "hardhat-gas-reporter";
-import "solidity-coverage";
-import { utils, Wallet } from "ethers";
 
 dotenv.config();
 
-
-function getCustomPrivateKey(privateKey: string | undefined) {
-  if (privateKey) {
-    return [privateKey];
-  } else {
-    return [];
-  }
-}
-
 function getAccounts() {
-    var accounts = [];
-    if (process.env.PRIVATE_KEY) {
-        var plainKey = new Wallet(process.env.PRIVATE_KEY).privateKey;
-        var balance = utils.parseEther("2000000").toString();
-        accounts.push({
-            privateKey: plainKey,
-            balance: balance
-        });
-    }   
-    return accounts;
-}
+  const accounts: HardhatNetworkAccountUserConfig[] = [];
+  const defaultBalance = ethers.parseEther("2000000").toString();
 
-task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
-  const accounts = await hre.ethers.getSigners();
-
-  for (const account of accounts) {
-    console.log(account.address);
+  if (process.env.PRIVATE_KEY) {
+    const plainKey = new ethers.Wallet(process.env.PRIVATE_KEY).privateKey;
+    accounts.push({
+      privateKey: plainKey,
+      balance: defaultBalance
+    });
+  } else {
+    const n = 10;
+    for (let i = 0; i < n; ++i) {
+      accounts.push({
+        privateKey: ethers.Wallet.createRandom().privateKey,
+        balance: defaultBalance
+      })
+    }
   }
-});
 
-// You need to export an object to set up your config
-// Go to https://hardhat.org/config/ to learn more
+  return accounts;
+}
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.4",
   networks: {
-    goerli: {
-      url: process.env.GOERLI_URL || "",
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    },
     hardhat: {
       accounts: getAccounts(),
       chainId: 31337,
       blockGasLimit: 12000000,
       gasPrice: 1000000000,
       mining: {
-          auto: true,
-          interval: 1000
+        auto: true,
+        interval: 12000
       }
     }
-  },
-  gasReporter: {
-    enabled: process.env.REPORT_GAS !== undefined,
-    currency: "USD",
-  },
-  etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
-  },
+  }
 };
 
 export default config;
