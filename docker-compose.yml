@@ -8,6 +8,7 @@ services:
     build:
       context: "."
       dockerfile: Dockerfile
+    mem_limit: 2GB
     tty: true
     environment:
       PRIVATE_KEY: ${ETH_PRIVATE_KEY} 
