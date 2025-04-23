@@ -38,7 +38,7 @@ const config: HardhatUserConfig = {
       gasPrice: 1000000000,
       mining: {
         auto: true,
-        interval: 1000
+        interval: parseInt(process.env.MINING_INTERVAL || "1000", 10)
       }
     }
   }
