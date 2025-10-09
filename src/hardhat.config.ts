@@ -1,47 +1,41 @@
+import "ts-node/register/transpile-only";
 import * as dotenv from "dotenv";
-import { HardhatUserConfig } from "hardhat/config";
-import { ethers } from "ethers";
-import { HardhatNetworkAccountUserConfig } from "hardhat/types";
-
+import type { HardhatUserConfig } from "hardhat/config";
 
 dotenv.config();
 
-function getAccounts() {
-  const accounts: HardhatNetworkAccountUserConfig[] = [];
-  const defaultBalance = ethers.parseEther("2000000").toString();
+const BIG_BALANCE = "2000000000000000000000000";
+const FAST = process.env.FAST_MODE !== "0";
+const intervalMs = parseInt(process.env.MINING_INTERVAL_MS || "100", 10);
 
-  if (process.env.PRIVATE_KEY) {
-    const plainKey = new ethers.Wallet(process.env.PRIVATE_KEY).privateKey;
-    accounts.push({
-      privateKey: plainKey,
-      balance: defaultBalance
-    });
-  } else {
-    const n = 10;
-    for (let i = 0; i < n; ++i) {
-      accounts.push({
-        privateKey: ethers.Wallet.createRandom().privateKey,
-        balance: defaultBalance
-      })
-    }
-  }
-
-  return accounts;
-}
+const accounts =
+  process.env.PRIVATE_KEY
+    ? [{ privateKey: process.env.PRIVATE_KEY as string, balance: BIG_BALANCE }]
+    : {
+      mnemonic: process.env.MNEMONIC ?? "test test test test test test test test test test test junk",
+      count: parseInt(process.env.ACCOUNTS_COUNT || "10", 10),
+      accountsBalance: BIG_BALANCE,
+    };
 
 const config: HardhatUserConfig = {
+  solidity: {
+    version: "0.8.26",
+    settings: { optimizer: { enabled: false, runs: 1 }, viaIR: false },
+  },
   networks: {
     hardhat: {
-      accounts: getAccounts(),
+      type: "edr-simulated",
       chainId: 31337,
-      blockGasLimit: 12000000,
-      gasPrice: 1000000000,
-      mining: {
-        auto: true,
-        interval: parseInt(process.env.MINING_INTERVAL || "1000", 10)
-      }
-    }
-  }
+      accounts,
+      loggingEnabled: false,
+      allowUnlimitedContractSize: true,
+      blockGasLimit: 30_000_000,
+      initialBaseFeePerGas: 0,
+      mining: FAST
+        ? { auto: true, mempool: { order: "fifo" } }
+        : { auto: false, interval: intervalMs, mempool: { order: "fifo" } },
+    },
+  },
 };
 
 export default config;
