@@ -1,14 +1,12 @@
-FROM node:24-slim
+FROM oven/bun:1-alpine
 
 WORKDIR /app
 
-COPY src/package.json ./
+COPY package.json bun.lockb* ./
 
-RUN yarn install --frozen-lockfile --production=false && \
-    yarn cache clean
+RUN bun install --frozen-lockfile --production && \
+    rm -rf /root/.bun/install/cache
 
 COPY src/ ./
 
-ENV NODE_OPTIONS=--max_old_space_size=4096
-
-CMD ["npx", "hardhat", "node"]
+CMD ["bun", "x", "hardhat", "node", "--network", "hardhat"]
