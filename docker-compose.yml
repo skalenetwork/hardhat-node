@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   hnode:
     container_name: hnode
@@ -8,8 +6,8 @@ services:
     build:
       context: "."
       dockerfile: Dockerfile
-    mem_limit: 2GB
+    mem_limit: 4GB
     tty: true
     environment:
       PRIVATE_KEY: ${ETH_PRIVATE_KEY}
-      MINING_INTERVAL: ${MINING_INTERVAL:-1000}
+      MINING_INTERVAL_MS: ${MINING_INTERVAL_MS:-100}
